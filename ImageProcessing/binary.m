@@ -1,9 +1,9 @@
 % get binary 
 clear all 
 clc 
-filepath = 'squigly.png';
+filepath = 'lines.png';
 im = imread(filepath) ; 
-fileID = fopen('squigly.txt','w') ; 
+fileID = fopen('lines.txt','w') ; 
 shape = size(im) ;
 
 for i = 1: shape(1)

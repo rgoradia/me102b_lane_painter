@@ -1,27 +1,24 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-
-
-# work on variable starting point using the where module in the node class 
 """
-Created on Mon Oct 23 12:37:13 2017
+Created on Wed Nov 15 14:04:45 2017
 
-@author: ymubarak
+@author: Ymubarak
 """
+
+# Instructions : 
+# - orient your picture such that the car positive movement (forward) is in the y direction 
+# - use the test.ipynb to see if the path you drew is binarized accurately enough 
+# - if not either try giving a more magnified picture or trying increasing the neighborsize 
+
 
 import numpy as np 
-import math 
-
-
-class node():
+import math as m 
+class node() : 
+    
     def __init__(self,xloc,yloc):
         self.yloc = yloc
         self.xloc =xloc
-        self.state = 0 
-        self.angle = 0 
-        self.slope = 0 
-    def paint(self ): 
-        self.state = 1 
+        
     def findneighbors(self,nodelist,size):
         x =np.array( [n.xloc for n in nodelist ])
         y = np.array([n.yloc for n in nodelist]) 
@@ -45,16 +42,7 @@ class node():
             return neighbors 
         else : 
             return []
-    
-    def nextorientation(self,current_theta, linewidth ):
-        pass 
-    def findnodepos(self, current_theta):
-        pass 
-    def getdistance(self, another_node):
-        x = self.xloc - another_node.xloc 
-        y = self.yloc - another_node.yloc 
-        dist = (x**2 + y**2) ** 0.5 
-        return dist 
+        
     def equals(self,node):
         n1 = False 
         n2 = False 
@@ -66,64 +54,19 @@ class node():
             return True 
         else : 
             return False 
+        
     def where(self, nodelist) : 
         i = [x for x in range(0,len(nodelist)) if self.equals(nodelist[x])]
         return i[0]
-    def display(self):
-        print("node at : ")
-        print("xloc : " +  str(self.xloc))
-        print("yloc : " + str(self.yloc))
-            
-    
-#doesnt work     
-    def gettangent(self,neighbors):
-        
-        x = np.array([n.xloc for n in neighbors]).reshape(len(neighbors),1) 
-        y = np.array([n.yloc for n in neighbors]).reshape(len(neighbors),1)
-        #shift 
-        x = x- self.xloc 
-        y = y - self.yloc 
-        m = np.linalg.lstsq(x,y)[0]
-        error = m*x - y ; 
-        self.slope = m 
-        return m, error
-    def getangle(self, forward_or_backward= 'f'):
-        op_ad = self.slope[0][0]
-        #m_in = op_ad**-1
-        #self.angle = math.atan(m_in)
-        self.angle = math.atan(op_ad**-1)
-        return self.angle  
-        
-    
-    
     
 
-class car(): 
-    def __init__(self):
-        self.theta = 0 
-        self.paint_state = False 
-    
-    
-    
 class Image() :
-    def __init__(self, filepath, pixelscale = [1,1], 
-                 starting_orientation = 0 ): #startingpoint = [])  : 
+    def __init__(self, filepath):
         f= open(filepath,'r')
-        
         self.linearray = np.array(f.readlines())
         self.dataarray = self.makenumpy() 
-        self.path = filepath 
-        self.pixelscale = pixelscale 
         self.centroids = self.columncentroids()
-        self.nodelist = self.getNodes()
-        #if startingpoint == []: 
-           # self.startingpoint = self.startnode()
-            
-        self.orientation0 = starting_orientation 
-        
-    def startnode(self) : 
-        return self.nodelist[0]
-    
+
     def makenumpy(self):
         nump =np.array(self.linearray)
         empty = []
@@ -131,19 +74,6 @@ class Image() :
             column = [int(x) for x in nump[i] if x!= "\n"]
             empty.append(column)
         return np.array(empty)
-
-    def getNodes(self) :
-        nodelist = list() 
-        mat= self.centroids
-        for i in range(0,len(mat[0])):
-            x = mat[0][i]
-            y = mat[1][i]
-            nodelist.append(node(x,y)) 
-        return nodelist 
-    
-
-    def setpixelscale(self, ps) : 
-        self.pixelscale = ps
 
     def columncentroids(self):
         #x_averages[colum_number] =[cetroid1, centroid2, ....]
@@ -167,6 +97,15 @@ class Image() :
 
         return x,y 
     
+    def getNodes(self) :
+        nodelist = list() 
+        mat= self.centroids
+        for i in range(0,len(mat[0])):
+            x = mat[0][i]
+            y = mat[1][i]
+            nodelist.append(node(x,y)) 
+        return nodelist 
+    
     def NearestNode(self, point,nodelist):
         xlocs = [n.xloc for n in nodelist]
         ylocs = [n.yloc for n in nodelist]
@@ -181,13 +120,11 @@ class Image() :
         ind = np.where(dists == min_val)[0][0]
         
         return nodelist[ind] , dists[ind]
-    
 
-    
-    
     def getNextStates(self,neighborhood_size) :
         #returns for each node in self.getNodes() 
         # array [angle_to_next_node, distance_to_next_node, paint_state]
+
         total_unpainted = self.getNodes() 
         painted = list() 
         Instructs = list () 
@@ -197,8 +134,8 @@ class Image() :
         while  len(total_unpainted) > 1 : 
             neighbors = n0.findneighbors(total_unpainted,neighborhood_size) 
             [n1,dist_2_n1] = self.NearestNode([n0.xloc, n0.yloc],total_unpainted)
-            tan = n0.gettangent([n1])
-            ang = n0.getangle()
+            ang = getangle(n0,n1) 
+
             # if you can't find neighbors that need to be painted. 
             if not neighbors : # empty neighbors  
                 paint_state = 0 
@@ -206,7 +143,6 @@ class Image() :
                 paint_state = 1 
             
             Instructs.append([ang, dist_2_n1, paint_state])
-            n0.paint()
             painted.append(n0)
             total_unpainted.remove(total_unpainted[n0.where(total_unpainted)])
             n0 = n1 
@@ -214,26 +150,31 @@ class Image() :
 
     
         return Instructs 
-                
-                
-    
+
+
+
 def tolist(xdict):
     y = []
     x = []
     for key, values in xdict.items() : 
         if not not xdict[key]:
-            y.append( key*np.ones(len(xdict[key])) )
-            x.append([j for j in xdict[key]])
+            for i in range(0,len(xdict[key])):
+                y.append( key )
+                x.append(xdict[key][i])
+
     x=np.array(x)
     y=np.array(y)
     x=x.reshape(x.size)
     y=y.reshape(y.size)
     return x,y 
 
+def getangle(node1, node2):
+    deltx = node2.xloc - node1.xloc 
+    delty= node2.yloc - node1.yloc 
 
-            
-        
-      
+    #print("delta x is " + str(deltx )) 
+    #print("delta y is "+ str(delty)) 
+    angle = m.atan2(delty,deltx) 
+    #print("angle from the negative x axsis : " + str(angle)) 
 
-
-
+    return angle 
