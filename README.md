@@ -1,3 +1,5 @@
+# ME 102B Automated Lane Painter
+
 ## Welcome to GitHub Pages
 
 You can use the [editor on GitHub](https://github.com/rgoradia/me102b_lane_painter/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
